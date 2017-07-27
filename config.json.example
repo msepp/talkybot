@@ -1,0 +1,10 @@
+{
+  "CleverBotAPIKey": "",
+  "Server": "irc.stealth.net:6667",
+  "Nick": "talkybot",
+  "Username": "talkybot",
+  "Realname": "I am a talkybot",
+  "Channels": [
+    "#talkybots"
+  ]
+}
