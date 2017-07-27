@@ -4,16 +4,57 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"regexp"
+	"sync"
+	"time"
 
 	irc "github.com/thoj/go-ircevent"
-	cleverbot "github.com/ugjka/cleverbot-go"
 )
 
 var app = struct {
-	cfg       *Config
-	cleverbot *cleverbot.Session
-	irc       *irc.Connection
-}{}
+	cfg           *Config
+	irc           *irc.Connection
+	conversations map[string]*Conversation
+	mutex         sync.Mutex
+}{
+	conversations: map[string]*Conversation{},
+}
+
+func terminateConversation(channel, nick string) {
+	key := nick + channel
+
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+
+	log.Printf("Terminating conversation with key %s", key)
+
+	if _, ok := app.conversations[key]; ok {
+		delete(app.conversations, key)
+	}
+}
+
+func getConversation(channel, nick string, createIfNotExist bool) (*Conversation, bool) {
+	var convo *Conversation
+	var ok bool
+	var key string
+
+	key = nick + channel
+
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+
+	if convo, ok = app.conversations[key]; !ok {
+		log.Printf("convo with key %s doesn't exist, should create? %t", key, createIfNotExist)
+		if createIfNotExist {
+			convo = NewConversation(channel, nick, ircOnBotReply)
+			app.conversations[key] = convo
+		} else {
+			return nil, false
+		}
+	}
+
+	return convo, true
+}
 
 func init() {
 	var configPath string
@@ -27,26 +68,39 @@ func init() {
 	}
 
 	app.cfg = config
+
+	// compile self patter
+	selfRe = regexp.MustCompile(`(?i)\s?` + app.cfg.Nick + `[:,>]\s?`)
 }
 
 func main() {
 	app.irc = irc.IRC(app.cfg.Nick, app.cfg.Username)
 	app.irc.VerboseCallbackHandler = true
 	app.irc.Debug = true
+
 	app.irc.AddCallback("001", ircOnWelcome)
-	app.irc.AddCallback("JOIN", func(e *irc.Event) {
-		log.Printf("join:\n%+v", e)
-		go func() {
-			app.cleverbot = cleverbot.New(app.cfg.CleverBotAPIKey)
-			answer, _ := app.cleverbot.Ask("Hi, How are you?")
-			app.irc.Privmsg("#sweetiechan", answer)
-		}()
-	})
+	app.irc.AddCallback("PRIVMSG", ircOnPrivMsg)
 
 	err := app.irc.Connect(app.cfg.Server)
 	if err != nil {
 		fmt.Printf("Err %s", err)
 		return
 	}
+
+	// Start a timer for reaping old conversations
+	go func() {
+		var tc = time.Tick(time.Second)
+		for {
+			select {
+			case <-tc:
+				for _, c := range app.conversations {
+					if c.Idle() > (time.Minute * 2) {
+						log.Printf("Idle conversation, terminating")
+						terminateConversation(c.Channel(), c.Nick())
+					}
+				}
+			}
+		}
+	}()
 	app.irc.Loop()
 }
