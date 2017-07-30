@@ -20,6 +20,10 @@ type Config struct {
 	Channels []string
 	// Server is the server to connect to
 	Server string
+	// OwnerNick
+	OwnerNick string
+	// OwnerUser
+	OwnerUser string
 }
 
 func readConfig(filename string) (cfg *Config, err error) {

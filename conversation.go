@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -57,6 +58,10 @@ func (c *Conversation) NewInput(line string) {
 // GetReply retrieves a reply to given string from cleverbot
 func (c *Conversation) GetReply(to string) {
 	answer, err := c.bot.Ask(to)
+	log.Printf("Got answer: %s, delay will be %dms", answer, len(answer)*200)
+	if err == nil {
+		time.Sleep(time.Duration((len(answer) * 200)) * time.Millisecond)
+	}
 	c.cb(c.channel, c.nick, answer, err)
 
 	c.mutex.Lock()

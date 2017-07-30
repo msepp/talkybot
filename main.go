@@ -11,6 +11,7 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
+var useDebug bool
 var app = struct {
 	cfg           *Config
 	irc           *irc.Connection
@@ -58,7 +59,7 @@ func getConversation(channel, nick string, createIfNotExist bool) (*Conversation
 
 func init() {
 	var configPath string
-
+	flag.BoolVar(&useDebug, "debug", false, "Enable debug messages")
 	flag.StringVar(&configPath, "config", "config.json", "Path to configuration")
 	flag.Parse()
 
@@ -75,8 +76,11 @@ func init() {
 
 func main() {
 	app.irc = irc.IRC(app.cfg.Nick, app.cfg.Username)
-	app.irc.VerboseCallbackHandler = true
-	app.irc.Debug = true
+
+	if useDebug {
+		app.irc.VerboseCallbackHandler = true
+		app.irc.Debug = true
+	}
 
 	app.irc.AddCallback("001", ircOnWelcome)
 	app.irc.AddCallback("PRIVMSG", ircOnPrivMsg)
@@ -103,4 +107,6 @@ func main() {
 		}
 	}()
 	app.irc.Loop()
+
+	log.Printf("Exiting. Bye!")
 }

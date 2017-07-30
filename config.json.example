@@ -6,5 +6,7 @@
   "Realname": "I am a talkybot",
   "Channels": [
     "#talkybots"
-  ]
+  ],
+  "OwnerNick": "",
+  "OnwerUser": ""
 }

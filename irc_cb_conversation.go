@@ -12,7 +12,7 @@ import (
 
 var selfRe *regexp.Regexp
 
-func ircOnPrivMsg(event *irc.Event) {
+func ircOnConversationMessage(event *irc.Event) {
 	var channel string
 	var msg string
 	var shouldReact bool
