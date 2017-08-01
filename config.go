@@ -20,10 +20,12 @@ type Config struct {
 	Channels []string
 	// Server is the server to connect to
 	Server string
-	// OwnerNick
+	// OwnerNick is the nick of the bots owner
 	OwnerNick string
-	// OwnerUser
+	// OwnerUser is the user of the bots owner
 	OwnerUser string
+	// EngageRandomly tells if the bot should enage in conversations randomly
+	EngageRandomly bool
 }
 
 func readConfig(filename string) (cfg *Config, err error) {

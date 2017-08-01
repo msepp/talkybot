@@ -8,5 +8,6 @@
     "#talkybots"
   ],
   "OwnerNick": "",
-  "OnwerUser": ""
+  "OnwerUser": "",
+  "EngageRandomly": false
 }

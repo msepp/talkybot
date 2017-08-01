@@ -27,7 +27,7 @@ func ircOnConversationMessage(event *irc.Event) {
 	// chance of still reacting.
 	shouldReact = strings.Contains(strings.ToLower(msg), strings.ToLower(app.cfg.Nick))
 	if shouldReact == false {
-		if rand.Intn(100) > 90 {
+		if app.cfg.EngageRandomly && rand.Intn(100) > 90 {
 			shouldReact = true
 		}
 	}
