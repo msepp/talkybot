@@ -45,7 +45,7 @@ func (c *Conversation) NewInput(line string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	c.nextInput += line
+	c.nextInput += " " + line
 	c.lastActive = time.Now()
 
 	if c.gettingReply == false {
